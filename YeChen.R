@@ -1,6 +1,6 @@
-setwd("~/Downloads/R21Data")
+setwd("~/brca")
 
-T59_annotations <- read.delim("~/Downloads/R21Data/T59_annotations.txt", stringsAsFactors=TRUE)
+T59_annotations <- read.delim("T59_annotations.txt", stringsAsFactors=TRUE)
 features <- read.table(file = 'features.tsv', sep = '\t', header = TRUE)
 library(Seurat)
 
@@ -43,14 +43,21 @@ pdf(file = "figure1temp.pdf",
     width = 6, 
     height = 12)
 par(mfrow = c(4,2))
-for (i in 1:length(alctypes)){ #7
+library(foreach)
+library(doParallel)
+totalCores = detectCores()
+
+#Leave one core to avoid overload your computer
+cluster <- makeCluster(totalCores[1]-1) 
+registerDoParallel(cluster)
+parr <- foreach (i = 1:length(alctypes)) %dopar% { #7
   id <- which(ctypes == alctypes[i])
   for (j in 11:200){ #10
-    for (k in 11:200){ #1:8
+    for (k in 11:200){ #1:8 ?
       if (k!=j){
         temp <- cbind(datobj[idr[k],id],datobj[idr[j],id],figure1[1,id]) 
         tmp <- median(temp[temp[,1]!=0,1])
-        dat1 <- as.data.frame((temp[which(temp[,1] < tmp),2:3]))
+        dat1 <- as.data.frame((temp[which(temp[,1] < tmp),2:3]))#?
         dat2 <- as.data.frame((temp[which(temp[,1] >= tmp),2:3]))
         colnames(dat1)[1] <- colnames(dat2)[1] <- "y"
         tryCatch({  
