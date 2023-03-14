@@ -39,10 +39,10 @@ for (i in 1:ncol(datobj)){
 
 alctypes <- paste(unique(T59_annotations$celltyperBPEType))
 
-pdf(file = "figure1temp.pdf",   
-    width = 6, 
-    height = 12)
-par(mfrow = c(4,2))
+#pdf(file = "figure1temp.pdf",   
+#    width = 6, 
+#    height = 12)
+#par(mfrow = c(4,2))
 for (i in 1:length(alctypes)){ #7
   id <- which(ctypes == alctypes[i])
   for (j in 11:200){ #10
@@ -87,22 +87,21 @@ grpcrostab <- function(dat, grps = 10, decreasing = FALSE){
     dat <- dat[order(dat[,i], decreasing = decreasing),]
   }
   dat <- dat[order(dat[,1]),]
- result <- matrix(NA,ncol(dat)-1,grps)
- rownames(result) <- colnames(dat[,-1])
- grpsid <- round(seq(1,nrow(dat),length = grps+1))
- for (i in 1:grps){
-   result[,i] <- colMeans(dat[grpsid[i]:grpsid[i+1],-1])
- }
- result
+  result <- matrix(NA,ncol(dat)-1,grps)
+  rownames(result) <- colnames(dat[,-1])
+  grpsid <- round(seq(1,nrow(dat),length = grps+1))
+  for (i in 1:grps){
+    result[,i] <- colMeans(dat[grpsid[i]:grpsid[i+1],-1])
+  }
+  result
 }
 ## there are two heatmaps mapping figdat1 and figdat2
 sepBRCA <- 10
 output <- output1# output <- output1[-which(output1$k==39),]  ##39 has too large value
-pdf(file = "figure1heat.pdf",
-    width = 22,
+pdf(file = "new_figure1heat.pdf",   
+    width = 22, 
     height = 22)
 par(mfrow = c(1,2))
-
 library(ggplot2)
 library(reshape2)
 library(gplots) 
@@ -120,40 +119,42 @@ makeheatmap <- function(){for (jj in unique(output$j)) { #
       figdat2 <- grpcrostab(dat = tmp2, grps = sepBRCA, decreasing = TRUE)
       mm <- round(nrow(figdat1)/2)
       mn <- nrow(figdat1)
-      rownames(figdat1)[1:(mm-1)] <- rownames(figdat2)[1:(mm-1)] <- paste(rownames(figdat1)[1:(mm-1)],"/")
-      rownames(figdat1)[(mm+1):mn] <- rownames(figdat2)[(mm+1):mn] <- paste(rownames(figdat1)[(mm+1):mn],"\\")
+      # I add i for the column name cause ggplot will ignore the same row name
+      rownames(figdat1)[1:(mm-1)] <- rownames(figdat2)[1:(mm-1)] <- paste(rownames(figdat1)[1:(mm-1)],"/",i)
+      rownames(figdat1)[(mm+1):mn] <- rownames(figdat2)[(mm+1):mn] <- paste(rownames(figdat1)[(mm+1):mn],"\\",i)
       rownames(figdat1)[mm] <- rownames(figdat2)[mm] <- paste(rownames(figdat1)[mm],
                                                               alctypes[i], sep = "  Cell type: ")
       colnames(figdat1) <- colnames(figdat2) <- paste(100*1:sepBRCA/sepBRCA,"%th quantile",sep="")
       fig1 <- rbind(fig1,figdat1)
       fig2 <- rbind(fig2,figdat2)}
   }
-
+  #  fig1_data<-append(fig1_data,fig1)
+  #  fig2_data <- append(fig2_data,fig2)
+  library(gplots)  
   fig1 <- log(1+cbind(fig1))
   fig1 <- melt(fig1)
   m1 <- median(fig1$value)
-  f <- ggplot(fig1, aes(x = Var2,
-                    y = Var1,
-                    fill = value))+geom_tile() + scale_colour_gradient2(
-                      low = "green", 
-                      mid = "black", 
-                      high = "red", 
-                      midpoint = m1
-                    )+labs(title = paste("Low level of", rownames(datobj)[idr[j]], collapse = " "),
-                             x = "BRCA",y = "")
-  show(f)
+  f <- ggplot(fig1, aes( Var2,
+                         Var1,fill=value
+  ))+geom_tile() + scale_fill_gradient2(
+    low = "green", 
+    mid = "black", 
+    high = "red", 
+    midpoint = m1
+  )+labs(title = paste("Low level of", rownames(datobj)[idr[j]], collapse = " "),
+         x = "BRCA",y = "")
   fig2 <- log(1+cbind(fig2))
   fig2 <- melt(fig2)
   m2 <- median(fig2$value)
   f1 <- ggplot(fig2, aes(x = Var2,
-                        y = Var1,
-                        fill = value))+geom_tile()+scale_fill_gradient2(
-                          low = "green", 
-                          mid = "black", 
-                          high = "red", 
-                          midpoint = m2
-                        )+labs(title = paste("High level of", rownames(datobj)[idr[j]], collapse = " "),
-                               x = "BRCA",y="")
+                         y = Var1,
+                         fill = value))+geom_tile()+scale_fill_gradient2(
+                           low = "green", 
+                           mid = "black", 
+                           high = "red", 
+                           midpoint = m2
+                         )+labs(title = paste("High level of", rownames(datobj)[idr[j]], collapse = " "),
+                                x = "BRCA",y="")
   combined <- f+f1
   show(combined)
   # heatmap(log(1+cbind(fig1,fig2)), col = redgreen(250),
@@ -170,12 +171,11 @@ makeheatmap <- function(){for (jj in unique(output$j)) { #
   #         Rowv = NA, Colv = NA, scale = "row", xlab = "BRCA",
   #         main = paste("High level of", rownames(datobj)[idr[j]], collapse = " "),
   #         margins = c(10,16))
-
 }
 }
 makeheatmap()
-
 dev.off()
+
 
 #par(mfrow = c(1,2))
 #barplot(fig1[10,])
