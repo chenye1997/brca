@@ -1,6 +1,6 @@
-setwd("~/brca/")
-T59_annotations <- read.delim("~/brca/T59_annotations.txt", stringsAsFactors=TRUE)
-features <- read.table(file = 'features.tsv', sep = '\t', header = TRUE)
+setwd("~/brca/data")
+T59_annotations <- read.delim("~/brca/data/T59_annotations.txt", stringsAsFactors=TRUE)
+features <- read.table(file = '~/brca/data/features.tsv', sep = '\t', header = TRUE)
 library(Seurat)
 
 datobj <- ReadMtx( 
